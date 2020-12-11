@@ -2,8 +2,9 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const logSchema = new Schema({
-  _id: {
-    type: String,
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'users',
     required: true,
   },
   description: {
@@ -15,7 +16,7 @@ const logSchema = new Schema({
     required: true,
   },
   date: {
-    type: String,
+    type: Date,
     required: true,
   },
 });

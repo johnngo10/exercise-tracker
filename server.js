@@ -5,7 +5,6 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('./models/User');
 const Log = require('./models/Log');
-const nanoid = require('nanoid');
 
 // Setup Mongodb connection
 mongoose
@@ -24,11 +23,11 @@ app.get('/', (req, res) => {
 
 app.use(express.urlencoded({ extended: false }));
 
+// Create a new user
 app.post('/api/exercise/new-user', (req, res) => {
   const user = req.body.username;
-  const id = nanoid.nanoid(10);
 
-  const findUser = User.findOne({ username: user }, function (err, data) {
+  User.findOne({ username: user }, function (err, data) {
     if (data) {
       res.json({
         error: 'Username already taken',
@@ -36,7 +35,6 @@ app.post('/api/exercise/new-user', (req, res) => {
     } else {
       const record = new User({
         username: user,
-        _id: id,
       });
 
       record
@@ -44,7 +42,6 @@ app.post('/api/exercise/new-user', (req, res) => {
         .then(result => {
           res.json({
             username: user,
-            _id: id,
           });
         })
         .catch(err => {
@@ -53,6 +50,58 @@ app.post('/api/exercise/new-user', (req, res) => {
     }
   });
 });
+
+// Get all users
+app.get('/api/exercise/users', (req, res) => {
+  User.find({}, function (err, result) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(result);
+    }
+  });
+});
+
+// Add an exercise log
+app.post('/api/exercise/add', (req, res) => {
+  const userId = req.body.userId;
+  const description = req.body.description;
+  const duration = parseInt(req.body.duration);
+  const date = !req.body.date ? new Date() : new Date(req.body.date);
+
+  User.findOne({ _id: userId }, function (err, data) {
+    if (!data) {
+      res.json({
+        error: 'User Id does not exist',
+      });
+    } else {
+      const record = new Log({
+        userId: userId,
+        description: description,
+        duration: duration,
+        date: date,
+      });
+
+      record
+        .save()
+        .then(result => {
+          res.json({
+            _id: userId,
+            username: data.username,
+            description: description,
+            duration: duration,
+            date: date,
+          });
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
+  });
+});
+
+// Get a user's exercise log
+app.get('/api/exercise/log?userId=:id', (req, res) => {});
 
 // Basic Configuration
 const listener = app.listen(process.env.PORT || 3000, () => {
