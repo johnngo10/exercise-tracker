@@ -11,6 +11,7 @@ mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    useFindAndModify: false,
   })
   .then(result => console.log('connected to db'))
   .catch(err => console.log(err));
@@ -42,6 +43,7 @@ app.post('/api/exercise/new-user', (req, res) => {
         .then(result => {
           res.json({
             username: user,
+            _id: result._id,
           });
         })
         .catch(err => {
@@ -53,11 +55,11 @@ app.post('/api/exercise/new-user', (req, res) => {
 
 // Get all users
 app.get('/api/exercise/users', (req, res) => {
-  User.find({}, function (err, result) {
+  User.find({}, function (err, data) {
     if (err) {
       console.log(err);
     } else {
-      res.json(result);
+      res.json(data);
     }
   });
 });
@@ -75,33 +77,80 @@ app.post('/api/exercise/add', (req, res) => {
         error: 'User Id does not exist',
       });
     } else {
-      const record = new Log({
-        userId: userId,
-        description: description,
-        duration: duration,
-        date: date,
-      });
+      const username = data.username;
+      Log.findOne({ userId: userId }, function (err, data) {
+        if (!data) {
+          const record = new Log({
+            userId: userId,
+            log: [
+              {
+                description: description,
+                duration: duration,
+                date: date,
+              },
+            ],
+          });
 
-      record
-        .save()
-        .then(result => {
-          res.json({
-            _id: userId,
-            username: data.username,
+          record
+            .save()
+            .then(result => {
+              res.json({
+                _id: userId,
+                username: username,
+                description: description,
+                duration: duration,
+                date: date,
+              });
+            })
+            .catch(err => {
+              console.log(err);
+            });
+        } else {
+          let exercise = {
             description: description,
             duration: duration,
             date: date,
-          });
-        })
-        .catch(err => {
-          console.log(err);
-        });
+          };
+
+          Log.findOneAndUpdate(
+            { userId: userId },
+            { $push: { log: exercise } },
+            function (err, data) {
+              if (err) {
+                console.log(err);
+              } else {
+                res.json({
+                  _id: userId,
+                  username: username,
+                  description: description,
+                  duration: duration,
+                  date: date,
+                });
+              }
+            }
+          );
+        }
+      });
     }
   });
 });
 
 // Get a user's exercise log
-app.get('/api/exercise/log?userId=:id', (req, res) => {});
+app.get('/api/exercise/log', (req, res) => {
+  const userId = req.query.userId;
+  const from = req.query.from;
+  const limit = req.query.limit;
+
+  Log.findOne({ userId: userId }, function (err, data) {
+    if (!data) {
+      res.json({ error: 'User Id does not exist' });
+    } else {
+      res.json({
+        _id: data.userId,
+      });
+    }
+  });
+});
 
 // Basic Configuration
 const listener = app.listen(process.env.PORT || 3000, () => {

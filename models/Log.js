@@ -7,18 +7,34 @@ const logSchema = new Schema({
     ref: 'users',
     required: true,
   },
-  description: {
-    type: String,
-    required: true,
-  },
-  duration: {
-    type: Number,
-    required: true,
-  },
-  date: {
-    type: Date,
-    required: true,
-  },
+  log: [
+    {
+      description: {
+        type: String,
+        required: true,
+      },
+      duration: {
+        type: Number,
+        required: true,
+      },
+      date: {
+        type: Date,
+        required: true,
+      },
+    },
+  ],
+  // description: {
+  //   type: String,
+  //   required: true,
+  // },
+  // duration: {
+  //   type: Number,
+  //   required: true,
+  // },
+  // date: {
+  //   type: Date,
+  //   required: true,
+  // },
 });
 
 const Log = mongoose.model('Log', logSchema);
