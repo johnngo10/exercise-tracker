@@ -69,7 +69,10 @@ app.post('/api/exercise/add', (req, res) => {
   const userId = req.body.userId;
   const description = req.body.description;
   const duration = parseInt(req.body.duration);
-  const date = !req.body.date ? new Date() : new Date(req.body.date);
+  const splitDate = req.body.date.split('-');
+  const date = !req.body.date
+    ? new Date().toDateString()
+    : new Date(splitDate[0], splitDate[1] - 1, splitDate[2]).toDateString();
 
   User.findOne({ _id: userId }, function (err, data) {
     if (!data) {
@@ -138,15 +141,46 @@ app.post('/api/exercise/add', (req, res) => {
 // Get a user's exercise log
 app.get('/api/exercise/log', (req, res) => {
   const userId = req.query.userId;
+  let username;
   const from = req.query.from;
+  const to = req.query.to;
   const limit = req.query.limit;
 
-  Log.findOne({ userId: userId }, function (err, data) {
+  User.findOne({ _id: userId }, function (err, data) {
     if (!data) {
       res.json({ error: 'User Id does not exist' });
     } else {
+      username = data.username;
+    }
+  });
+
+  Log.findOne({ userId: userId }, function (err, data) {
+    let log;
+
+    if (!data) {
+      res.json({ error: 'User Id does not exist' });
+    } else {
+      log = data.log;
+      // Check date range
+      if (from && to) {
+        const fromDate = Math.floor(new Date(from).getTime() / 1000);
+        const toDate = Math.floor(new Date(to).getTime() / 1000);
+
+        log = log.filter(
+          d =>
+            new Date(d.date).getTime() / 1000 >= fromDate &&
+            new Date(d.date).getTime() / 1000 <= toDate
+        );
+      }
+      // Check limit
+      if (limit) {
+        log = log.filter((d, i) => i < limit);
+      }
       res.json({
         _id: data.userId,
+        username: username,
+        count: log.length,
+        log: log,
       });
     }
   });
