@@ -134,7 +134,7 @@ app.get('/api/exercise/log', (req, res) => {
         log = log.filter((d, i) => i < limit);
       }
       res.json({
-        _id,
+        _id: data._id,
         username,
         count: log.length,
         log,
