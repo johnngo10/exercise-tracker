@@ -4,7 +4,6 @@ const cors = require('cors');
 require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('./models/User');
-const Log = require('./models/Log');
 
 // Setup Mongodb connection
 mongoose
@@ -103,69 +102,6 @@ app.post('/api/exercise/add', (req, res) => {
         });
     }
   });
-
-  // User.findOne({ _id: userId }, function (err, data) {
-  //   if (!data) {
-  //     res.json({
-  //       error: 'User Id does not exist',
-  //     });
-  //   } else {
-  //     const username = data.username;
-  //     Log.findOne({ userId: userId }, function (err, data) {
-  //       if (!data) {
-  //         const record = new Log({
-  //           userId: userId,
-  //           log: [
-  //             {
-  //               description: description,
-  //               duration: duration,
-  //               date: date,
-  //             },
-  //           ],
-  //         });
-
-  //         record
-  //           .save()
-  //           .then(result => {
-  //             res.json({
-  //               _id: userId,
-  //               username: username,
-  //               description: description,
-  //               duration: duration,
-  //               date: date,
-  //             });
-  //           })
-  //           .catch(err => {
-  //             console.log(err);
-  //           });
-  //       } else {
-  //         let exercise = {
-  //           description: description,
-  //           duration: duration,
-  //           date: date,
-  //         };
-
-  //         Log.findOneAndUpdate(
-  //           { userId: userId },
-  //           { $push: { log: exercise } },
-  //           function (err, data) {
-  //             if (err) {
-  //               console.log(err);
-  //             } else {
-  //               res.json({
-  //                 _id: userId,
-  //                 username: username,
-  //                 description: description,
-  //                 duration: duration,
-  //                 date: date,
-  //               });
-  //             }
-  //           }
-  //         );
-  //       }
-  //     });
-  //   }
-  // });
 });
 
 // Get a user's exercise log
@@ -205,37 +141,6 @@ app.get('/api/exercise/log', (req, res) => {
       });
     }
   });
-
-  // Log.findOne({ userId: userId }, function (err, data) {
-  //   let log;
-
-  //   if (!data) {
-  //     res.json({ error: 'User Id does not exist' });
-  //   } else {
-  //     log = data.log;
-  //     // Check date range
-  //     if (from && to) {
-  //       const fromDate = Math.floor(new Date(from).getTime() / 1000);
-  //       const toDate = Math.floor(new Date(to).getTime() / 1000);
-
-  //       log = log.filter(
-  //         d =>
-  //           new Date(d.date).getTime() / 1000 >= fromDate &&
-  //           new Date(d.date).getTime() / 1000 <= toDate
-  //       );
-  //     }
-  //     // Check limit
-  //     if (limit) {
-  //       log = log.filter((d, i) => i < limit);
-  //     }
-  //     res.json({
-  //       _id: data.userId,
-  //       username: username,
-  //       count: log.length,
-  //       log: log,
-  //     });
-  //   }
-  // });
 });
 
 // Basic Configuration
