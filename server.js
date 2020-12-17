@@ -69,73 +69,103 @@ app.post('/api/exercise/add', (req, res) => {
   const userId = req.body.userId;
   const description = req.body.description;
   const duration = parseInt(req.body.duration);
+  let username;
   const splitDate = req.body.date.split('-');
   const date = !req.body.date
     ? new Date().toDateString()
     : new Date(splitDate[0], splitDate[1] - 1, splitDate[2]).toDateString();
+  let exercise = {
+    description: description,
+    duration: duration,
+    date: date,
+  };
 
   User.findOne({ _id: userId }, function (err, data) {
     if (!data) {
-      res.json({
-        error: 'User Id does not exist',
-      });
+      res.json({ error: 'User Id does not exist' });
     } else {
-      const username = data.username;
-      Log.findOne({ userId: userId }, function (err, data) {
-        if (!data) {
-          const record = new Log({
-            userId: userId,
-            log: [
-              {
-                description: description,
-                duration: duration,
-                date: date,
-              },
-            ],
-          });
+      username = data.username;
 
-          record
-            .save()
-            .then(result => {
-              res.json({
-                _id: userId,
-                username: username,
-                description: description,
-                duration: duration,
-                date: date,
-              });
-            })
-            .catch(err => {
-              console.log(err);
-            });
-        } else {
-          let exercise = {
+      data.log.push(exercise);
+      data
+        .save()
+        .then(result => {
+          res.json({
+            _id: userId,
+            username: username,
             description: description,
             duration: duration,
             date: date,
-          };
-
-          Log.findOneAndUpdate(
-            { userId: userId },
-            { $push: { log: exercise } },
-            function (err, data) {
-              if (err) {
-                console.log(err);
-              } else {
-                res.json({
-                  _id: userId,
-                  username: username,
-                  description: description,
-                  duration: duration,
-                  date: date,
-                });
-              }
-            }
-          );
-        }
-      });
+          });
+        })
+        .catch(err => {
+          console.log(err);
+        });
     }
   });
+
+  // User.findOne({ _id: userId }, function (err, data) {
+  //   if (!data) {
+  //     res.json({
+  //       error: 'User Id does not exist',
+  //     });
+  //   } else {
+  //     const username = data.username;
+  //     Log.findOne({ userId: userId }, function (err, data) {
+  //       if (!data) {
+  //         const record = new Log({
+  //           userId: userId,
+  //           log: [
+  //             {
+  //               description: description,
+  //               duration: duration,
+  //               date: date,
+  //             },
+  //           ],
+  //         });
+
+  //         record
+  //           .save()
+  //           .then(result => {
+  //             res.json({
+  //               _id: userId,
+  //               username: username,
+  //               description: description,
+  //               duration: duration,
+  //               date: date,
+  //             });
+  //           })
+  //           .catch(err => {
+  //             console.log(err);
+  //           });
+  //       } else {
+  //         let exercise = {
+  //           description: description,
+  //           duration: duration,
+  //           date: date,
+  //         };
+
+  //         Log.findOneAndUpdate(
+  //           { userId: userId },
+  //           { $push: { log: exercise } },
+  //           function (err, data) {
+  //             if (err) {
+  //               console.log(err);
+  //             } else {
+  //               res.json({
+  //                 _id: userId,
+  //                 username: username,
+  //                 description: description,
+  //                 duration: duration,
+  //                 date: date,
+  //               });
+  //             }
+  //           }
+  //         );
+  //       }
+  //     });
+  //   }
+  // });
 });
 
 // Get a user's exercise log
@@ -151,15 +181,6 @@ app.get('/api/exercise/log', (req, res) => {
       res.json({ error: 'User Id does not exist' });
     } else {
       username = data.username;
-    }
-  });
-
-  Log.findOne({ userId: userId }, function (err, data) {
-    let log;
-
-    if (!data) {
-      res.json({ error: 'User Id does not exist' });
-    } else {
       log = data.log;
       // Check date range
       if (from && to) {
@@ -177,13 +198,44 @@ app.get('/api/exercise/log', (req, res) => {
         log = log.filter((d, i) => i < limit);
       }
       res.json({
-        _id: data.userId,
+        _id: data._id,
         username: username,
         count: log.length,
         log: log,
       });
     }
   });
+
+  // Log.findOne({ userId: userId }, function (err, data) {
+  //   let log;
+
+  //   if (!data) {
+  //     res.json({ error: 'User Id does not exist' });
+  //   } else {
+  //     log = data.log;
+  //     // Check date range
+  //     if (from && to) {
+  //       const fromDate = Math.floor(new Date(from).getTime() / 1000);
+  //       const toDate = Math.floor(new Date(to).getTime() / 1000);
+
+  //       log = log.filter(
+  //         d =>
+  //           new Date(d.date).getTime() / 1000 >= fromDate &&
+  //           new Date(d.date).getTime() / 1000 <= toDate
+  //       );
+  //     }
+  //     // Check limit
+  //     if (limit) {
+  //       log = log.filter((d, i) => i < limit);
+  //     }
+  //     res.json({
+  //       _id: data.userId,
+  //       username: username,
+  //       count: log.length,
+  //       log: log,
+  //     });
+  //   }
+  // });
 });
 
 // Basic Configuration
