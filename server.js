@@ -70,14 +70,20 @@ app.post('/api/exercise/add', (req, res) => {
   const duration = parseInt(req.body.duration);
   let username;
   const splitDate = req.body.date.split('-');
+  utcDate = new Date(req.body.date);
   const date = !req.body.date
     ? new Date().toDateString()
-    : new Date(splitDate[0], splitDate[1] - 1, splitDate[2]).toDateString();
+    : new Date(
+        utcDate.getTime() + utcDate.getTimezoneOffset() * 60000
+      ).toDateString();
+  // new Date(splitDate[0], splitDate[1] - 1, splitDate[2]).toDateString();
+  // Fix date, tester is inputing a new Date().toDateString() value
   let exercise = {
     description: description,
     duration: duration,
     date: date,
   };
+  console.log(new Date().toDateString());
 
   User.findOne({ _id: userId }, function (err, data) {
     if (!data) {
