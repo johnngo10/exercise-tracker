@@ -83,7 +83,6 @@ app.post('/api/exercise/add', (req, res) => {
     duration: duration,
     date: date,
   };
-  console.log(new Date().toDateString());
 
   User.findOne({ _id: userId }, function (err, data) {
     if (!data) {
@@ -140,7 +139,7 @@ app.get('/api/exercise/log', (req, res) => {
         log = log.filter((d, i) => i < limit);
       }
       res.json({
-        _id: data._id,
+        _id,
         username,
         count: log.length,
         log,
