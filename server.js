@@ -90,7 +90,7 @@ app.post('/api/exercise/add', (req, res) => {
         .save()
         .then(result => {
           res.json({
-            _id: userId,
+            _id: data._id,
             username: username,
             description: description,
             duration: duration,
