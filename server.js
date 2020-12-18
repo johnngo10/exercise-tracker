@@ -41,8 +41,8 @@ app.post('/api/exercise/new-user', (req, res) => {
         .save()
         .then(result => {
           res.json({
-            username: user,
             _id: result._id,
+            username: result.username,
           });
         })
         .catch(err => {
