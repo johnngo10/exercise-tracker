@@ -68,13 +68,10 @@ app.post('/api/exercise/add', (req, res) => {
   const userId = req.body.userId;
   const description = req.body.description;
   const duration = parseInt(req.body.duration);
-  // const splitDate = req.body.date.split('-');
   const utcDate = new Date(req.body.date);
   const date = !req.body.date
     ? new Date()
     : new Date(utcDate.getTime() + utcDate.getTimezoneOffset() * 60000);
-  // new Date(splitDate[0], splitDate[1] - 1, splitDate[2]).toDateString();
-  // Fix date, tester is inputing a new Date().toDateString() value
   let exercise = {
     description: description,
     duration: duration,
@@ -98,39 +95,11 @@ app.post('/api/exercise/add', (req, res) => {
       }
     }
   );
-
-  //   User.findOne({ _id: userId }, function (err, data) {
-  //     if (!data) {
-  //       res.json({ error: 'User Id does not exist' });
-  //     } else {
-  //       username = data.username;
-
-  //       data.log.push(exercise);
-  //       data
-  //         .save()
-  //         .then(result => {
-  //           res.json({
-  //             _id: data._id,
-  //             username: username,
-  //             description: description,
-  //             duration: duration,
-  //             date: date,
-  //           });
-  //         })
-  //         .catch(err => {
-  //           console.log(err);
-  //         });
-  //     }
-  //   });
 });
 
 // Get a user's exercise log
 app.get('/api/exercise/log', (req, res) => {
   const { userId: _id, from, to, limit } = req.query;
-  // const userId = req.query.userId;
-  // const from = req.query.from;
-  // const to = req.query.to;
-  // const limit = req.query.limit;
 
   User.findOne({ _id: _id }, function (err, data) {
     if (!data) {
@@ -138,7 +107,7 @@ app.get('/api/exercise/log', (req, res) => {
     } else {
       let username = data.username;
       let log = data.log;
-      // Check date range
+      // Check date range and filter
       if (from && to) {
         const fromDate = Math.floor(new Date(from).getTime() / 1000);
         const toDate = Math.floor(new Date(to).getTime() / 1000);
@@ -149,7 +118,7 @@ app.get('/api/exercise/log', (req, res) => {
             new Date(d.date).getTime() / 1000 <= toDate
         );
       }
-      // Check limit
+      // Check limit and filter
       if (limit) {
         log = log.filter((d, i) => i < limit);
       }
@@ -161,6 +130,7 @@ app.get('/api/exercise/log', (req, res) => {
         date: d.date.toDateString(),
       }));
 
+      // Return json object
       res.json({
         _id,
         username,
