@@ -68,14 +68,11 @@ app.post('/api/exercise/add', (req, res) => {
   const userId = req.body.userId;
   const description = req.body.description;
   const duration = parseInt(req.body.duration);
-  let username;
-  const splitDate = req.body.date.split('-');
-  utcDate = new Date(req.body.date);
+  // const splitDate = req.body.date.split('-');
+  const utcDate = new Date(req.body.date);
   const date = !req.body.date
-    ? new Date().toDateString()
-    : new Date(
-        utcDate.getTime() + utcDate.getTimezoneOffset() * 60000
-      ).toDateString();
+    ? new Date()
+    : new Date(utcDate.getTime() + utcDate.getTimezoneOffset() * 60000);
   // new Date(splitDate[0], splitDate[1] - 1, splitDate[2]).toDateString();
   // Fix date, tester is inputing a new Date().toDateString() value
   let exercise = {
@@ -84,29 +81,47 @@ app.post('/api/exercise/add', (req, res) => {
     date: date,
   };
 
-  User.findOne({ _id: userId }, function (err, data) {
-    if (!data) {
-      res.json({ error: 'User Id does not exist' });
-    } else {
-      username = data.username;
-
-      data.log.push(exercise);
-      data
-        .save()
-        .then(result => {
-          res.json({
-            _id: data._id,
-            username: username,
-            description: description,
-            duration: duration,
-            date: date,
-          });
-        })
-        .catch(err => {
-          console.log(err);
+  User.findOneAndUpdate(
+    { _id: userId },
+    { $push: { log: exercise } },
+    function (err, data) {
+      if (!data) {
+        res.json({ error: 'User Id does not exist' });
+      } else {
+        res.json({
+          _id: data._id,
+          username: data.username,
+          description: description,
+          duration: duration,
+          date: date.toDateString(),
         });
+      }
     }
-  });
+  );
+
+  //   User.findOne({ _id: userId }, function (err, data) {
+  //     if (!data) {
+  //       res.json({ error: 'User Id does not exist' });
+  //     } else {
+  //       username = data.username;
+
+  //       data.log.push(exercise);
+  //       data
+  //         .save()
+  //         .then(result => {
+  //           res.json({
+  //             _id: data._id,
+  //             username: username,
+  //             description: description,
+  //             duration: duration,
+  //             date: date,
+  //           });
+  //         })
+  //         .catch(err => {
+  //           console.log(err);
+  //         });
+  //     }
+  //   });
 });
 
 // Get a user's exercise log
@@ -138,11 +153,19 @@ app.get('/api/exercise/log', (req, res) => {
       if (limit) {
         log = log.filter((d, i) => i < limit);
       }
+
+      // Format the exercise date
+      const formatLog = log.map(d => ({
+        description: d.description,
+        duration: d.duration,
+        date: d.date.toDateString(),
+      }));
+
       res.json({
         _id,
         username,
         count: log.length,
-        log,
+        log: formatLog,
       });
     }
   });
